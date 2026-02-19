@@ -59,7 +59,7 @@ A modern, cross-platform weather application built with .NET MAUI that provides 
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/WeatherWise.git
+git clone https://github.com/abhishektang/WeatherWise.git
 cd WeatherWise
 ```
 
@@ -235,9 +235,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📧 Contact
 
-Your Name - [@yourusername](https://twitter.com/yourusername)
+Abhishek Tanguturi - [@abhishektang](https://github.com/abhishektang)
 
-Project Link: [https://github.com/yourusername/WeatherWise](https://github.com/yourusername/WeatherWise)
+Project Link: [https://github.com/abhishektang/WeatherWise](https://github.com/abhishektang/WeatherWise)
 
 ---
 
