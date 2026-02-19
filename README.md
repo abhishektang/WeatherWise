@@ -50,7 +50,10 @@ A modern, cross-platform weather application built with .NET MAUI that provides 
 ## 📋 Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- Visual Studio 2022 or VS Code with MAUI workload
+- IDE (choose one):
+  - [Visual Studio 2022](https://visualstudio.microsoft.com/) with MAUI workload
+  - [JetBrains Rider](https://www.jetbrains.com/rider/) with MAUI plugin
+  - [VS Code](https://code.visualstudio.com/) with MAUI extension
 - For macOS: Xcode (for iOS/macOS development)
 - For Windows: Visual Studio with MAUI workload
 
