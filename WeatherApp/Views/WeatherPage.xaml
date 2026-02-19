@@ -1,0 +1,531 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:WeatherApp.ViewModels"
+             xmlns:models="clr-namespace:WeatherApp.Models"
+             x:Class="WeatherApp.Views.WeatherPage"
+             x:DataType="vm:WeatherViewModel"
+             Title="{Binding Title}">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- Modern Color Palette -->
+            <Color x:Key="PrimaryDark">#0D1117</Color>
+            <Color x:Key="SecondaryDark">#161B22</Color>
+            <Color x:Key="CardBackground">#21262D</Color>
+            <Color x:Key="CardBorder">#30363D</Color>
+            <Color x:Key="AccentBlue">#58A6FF</Color>
+            <Color x:Key="TextPrimary">#E6EDF3</Color>
+            <Color x:Key="TextSecondary">#8B949E</Color>
+            <Color x:Key="WarningOrange">#FFA657</Color>
+            <Color x:Key="SuccessGreen">#56D364</Color>
+            
+            <!-- Global Styles -->
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                <Setter Property="FontFamily" Value="OpenSansRegular" />
+            </Style>
+            
+            <Style TargetType="Frame" x:Key="GlassCard">
+                <Setter Property="BackgroundColor" Value="{StaticResource CardBackground}" />
+                <Setter Property="BorderColor" Value="{StaticResource CardBorder}" />
+                <Setter Property="HasShadow" Value="True" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Padding" Value="20" />
+            </Style>
+            
+            <Style TargetType="Frame" x:Key="CompactCard">
+                <Setter Property="BackgroundColor" Value="{StaticResource CardBackground}" />
+                <Setter Property="BorderColor" Value="{StaticResource CardBorder}" />
+                <Setter Property="HasShadow" Value="False" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="16" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
+    <!-- Gradient Background -->
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#0D1117" Offset="0.0" />
+            <GradientStop Color="#161B22" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+        <!-- Header with Search Bar -->
+        <Frame Grid.Row="0" 
+               Style="{StaticResource GlassCard}"
+               Margin="16,20,16,0"
+               Padding="12">
+            <Grid ColumnDefinitions="*,Auto,Auto" 
+                  ColumnSpacing="8"
+                  HeightRequest="50">
+                <Border Grid.Column="0"
+                        BackgroundColor="{StaticResource SecondaryDark}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 25">
+                    <Entry Placeholder="Search city, location..."
+                           PlaceholderColor="{StaticResource TextSecondary}"
+                           Text="{Binding SearchQuery}"
+                           TextColor="{StaticResource TextPrimary}"
+                           BackgroundColor="Transparent"
+                           VerticalTextAlignment="Center"
+                           Margin="16,0"
+                           FontSize="15"
+                           ReturnCommand="{Binding SearchCommand}"/>
+                </Border>
+                
+                <Border Grid.Column="1"
+                        BackgroundColor="{StaticResource AccentBlue}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 25"
+                        WidthRequest="50"
+                        HeightRequest="50">
+                    <Button Text="🔍"
+                            BackgroundColor="Transparent"
+                            TextColor="White"
+                            FontSize="20"
+                            Command="{Binding SearchCommand}"/>
+                </Border>
+                
+                <Border Grid.Column="2"
+                        BackgroundColor="{StaticResource SecondaryDark}"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource CardBorder}"
+                        StrokeShape="RoundRectangle 25"
+                        WidthRequest="50"
+                        HeightRequest="50">
+                    <Button Text="📍"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource TextPrimary}"
+                            FontSize="20"
+                            Command="{Binding GetCurrentLocationCommand}"/>
+                </Border>
+            </Grid>
+        </Frame>
+
+        <!-- Main Content Area -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16" Spacing="16">
+                
+                <!-- Error Message -->
+                <Frame IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBoolConverter}}"
+                       BackgroundColor="#2D1B1B"
+                       BorderColor="#FF6B6B"
+                       CornerRadius="12"
+                       Padding="16"
+                       HasShadow="False">
+                    <HorizontalStackLayout Spacing="12">
+                        <Label Text="⚠️" FontSize="20" VerticalOptions="Center"/>
+                        <Label Text="{Binding ErrorMessage}"
+                               FontSize="14"
+                               TextColor="#FF6B6B"
+                               VerticalOptions="Center"
+                               LineBreakMode="WordWrap"/>
+                    </HorizontalStackLayout>
+                </Frame>
+                
+                <!-- Loading Indicator -->
+                <Frame IsVisible="{Binding IsBusy}"
+                       Style="{StaticResource GlassCard}"
+                       Padding="40,60">
+                    <VerticalStackLayout Spacing="16" HorizontalOptions="Center">
+                        <ActivityIndicator IsRunning="True"
+                                         Color="{StaticResource AccentBlue}"
+                                         WidthRequest="48"
+                                         HeightRequest="48"/>
+                        <Label Text="Loading weather data..."
+                               FontSize="16"
+                               TextColor="{StaticResource TextSecondary}"
+                               HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+                
+                <!-- Weather Content -->
+                <VerticalStackLayout IsVisible="{Binding WeatherData, Converter={StaticResource NullToBoolConverter}}"
+                                   Spacing="16">
+                    
+                    <!-- Hero Card - Current Weather -->
+                    <Frame Style="{StaticResource GlassCard}"
+                           Padding="24,28">
+                        <VerticalStackLayout Spacing="8">
+                            <!-- Location & Date -->
+                            <Label Text="{Binding WeatherData.LocationName}"
+                                   FontSize="28"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   Margin="0,0,0,4"/>
+                            
+                            <Label Text="{Binding WeatherData.Current.DateTime, StringFormat='{0:dddd, MMMM dd}'}"
+                                   FontSize="15"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{StaticResource TextSecondary}"/>
+
+                            <!-- Temperature Display -->
+                            <HorizontalStackLayout HorizontalOptions="Center" 
+                                                 Spacing="12"
+                                                 Margin="0,20,0,8">
+                                <Label Text="{Binding WeatherData.Current.Temperature, StringFormat='{0:F0}'}"
+                                       FontSize="88"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       VerticalOptions="Center"/>
+                                <Label Text="°C"
+                                       FontSize="42"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       VerticalOptions="Start"
+                                       Margin="0,12,0,0"/>
+                            </HorizontalStackLayout>
+
+                            <!-- Weather Condition -->
+                            <Label Text="{Binding WeatherData.Current.Condition}"
+                                   FontSize="20"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   Margin="0,0,0,8"/>
+
+                            <!-- Feels Like -->
+                            <Border BackgroundColor="{StaticResource SecondaryDark}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 20"
+                                    Padding="16,10"
+                                    HorizontalOptions="Center">
+                                <Label Text="{Binding WeatherData.Current.FeelsLike, StringFormat='Feels like {0:F0}°C'}"
+                                       FontSize="15"
+                                       TextColor="{StaticResource TextSecondary}"/>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Frame>
+                    
+                    <!-- Weather Details Cards Grid -->
+                    <Grid ColumnDefinitions="*,*,*" 
+                          RowDefinitions="Auto,Auto"
+                          ColumnSpacing="12"
+                          RowSpacing="12">
+                        
+                        <!-- Wind Card -->
+                        <Frame Grid.Row="0" Grid.Column="0" Style="{StaticResource CompactCard}">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="💨" FontSize="28" HorizontalOptions="Center"/>
+                                <Label Text="{Binding WeatherData.Current.WindSpeed, StringFormat='{0:F1}'}"
+                                       FontSize="22"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="m/s"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="Wind" 
+                                       FontSize="13" 
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Humidity Card -->
+                        <Frame Grid.Row="0" Grid.Column="1" Style="{StaticResource CompactCard}">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="💧" FontSize="28" HorizontalOptions="Center"/>
+                                <Label Text="{Binding WeatherData.Current.Humidity, StringFormat='{0}'}"
+                                       FontSize="22"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="%"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="Humidity" 
+                                       FontSize="13" 
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Visibility Card -->
+                        <Frame Grid.Row="0" Grid.Column="2" Style="{StaticResource CompactCard}">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="👁️" FontSize="28" HorizontalOptions="Center"/>
+                                <Label Text="{Binding WeatherData.Current.Visibility, StringFormat='{0:F1}'}"
+                                       FontSize="22"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="km"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="Visibility" 
+                                       FontSize="13" 
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Pressure Card -->
+                        <Frame Grid.Row="1" Grid.Column="0" Style="{StaticResource CompactCard}">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="🌡️" FontSize="28" HorizontalOptions="Center"/>
+                                <Label Text="{Binding WeatherData.Current.Pressure, StringFormat='{0:F0}'}"
+                                       FontSize="22"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="hPa"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="Pressure" 
+                                       FontSize="13" 
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Sunrise Card -->
+                        <Frame Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactCard}">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="🌅" FontSize="28" HorizontalOptions="Center"/>
+                                <Label Text="{Binding WeatherData.Current.Sunrise, StringFormat='{0:HH:mm}'}"
+                                       FontSize="22"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="AM"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="Sunrise" 
+                                       FontSize="13" 
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Sunset Card -->
+                        <Frame Grid.Row="1" Grid.Column="2" Style="{StaticResource CompactCard}">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="🌇" FontSize="28" HorizontalOptions="Center"/>
+                                <Label Text="{Binding WeatherData.Current.Sunset, StringFormat='{0:HH:mm}'}"
+                                       FontSize="22"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="PM"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                                <Label Text="Sunset" 
+                                       FontSize="13" 
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </Grid>
+                    
+                    <!-- Hourly Forecast Section -->
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8" Margin="4,0">
+                            <Label Text="📊"
+                                   FontSize="20"
+                                   VerticalOptions="Center"/>
+                            <Label Text="24-Hour Forecast"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        
+                        <Frame Style="{StaticResource GlassCard}" Padding="0" HeightRequest="180">
+                            <ScrollView Orientation="Horizontal" 
+                                      HorizontalScrollBarVisibility="Always">
+                                <HorizontalStackLayout Spacing="8" 
+                                                     Padding="12"
+                                                     BindableLayout.ItemsSource="{Binding WeatherData.HourlyForecasts}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:HourlyForecast">
+                                            <Border BackgroundColor="{StaticResource SecondaryDark}"
+                                                  StrokeThickness="1"
+                                                  Stroke="{StaticResource CardBorder}"
+                                                  StrokeShape="RoundRectangle 12"
+                                                  Padding="16,12"
+                                                  WidthRequest="90"
+                                                  HeightRequest="150">
+                                                <VerticalStackLayout Spacing="6">
+                                                    <Label Text="{Binding DateTime, StringFormat='{0:HH:mm}'}"
+                                                         FontSize="13"
+                                                         FontAttributes="Bold"
+                                                         HorizontalTextAlignment="Center"
+                                                         TextColor="{StaticResource TextSecondary}"/>
+                                                    <Label Text="{Binding Temperature, StringFormat='{0:F0}°'}"
+                                                         FontSize="24"
+                                                         FontAttributes="Bold"
+                                                         HorizontalTextAlignment="Center"
+                                                         TextColor="{StaticResource TextPrimary}"/>
+                                                    <Label Text="{Binding Condition}"
+                                                         FontSize="11"
+                                                         HorizontalTextAlignment="Center"
+                                                         TextColor="{StaticResource TextSecondary}"
+                                                         LineBreakMode="TailTruncation"
+                                                         MaxLines="2"/>
+                                                    <Label Text="{Binding ChanceOfRain, StringFormat='💧 {0}%'}"
+                                                         FontSize="10"
+                                                         TextColor="#58A6FF"
+                                                         HorizontalTextAlignment="Center"
+                                                         Margin="0,4,0,0"
+                                                         IsVisible="{Binding ChanceOfRain, Converter={StaticResource GreaterThanZeroConverter}}"/>
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </HorizontalStackLayout>
+                            </ScrollView>
+                        </Frame>
+                    </VerticalStackLayout>
+                    
+                    <!-- Weekly Forecast Section -->
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8" Margin="4,0">
+                            <Label Text="📅"
+                                   FontSize="20"
+                                   VerticalOptions="Center"/>
+                            <Label Text="7-Day Forecast"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        
+                        <Frame Style="{StaticResource GlassCard}" Padding="16">
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding WeatherData.DailyForecasts}"
+                                               Spacing="12">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="models:DailyForecast">
+                                        <Border BackgroundColor="{StaticResource SecondaryDark}"
+                                              StrokeThickness="1"
+                                              Stroke="{StaticResource CardBorder}"
+                                              StrokeShape="RoundRectangle 10"
+                                              Padding="14,12">
+                                            <Grid ColumnDefinitions="2.5*,Auto,Auto,1.5*" 
+                                                ColumnSpacing="12"
+                                                VerticalOptions="Center">
+                                                
+                                                <!-- Day Name -->
+                                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                                    <Label Text="{Binding Date, StringFormat='{0:dddd}'}"
+                                                         FontSize="15"
+                                                         FontAttributes="Bold"
+                                                         TextColor="{StaticResource TextPrimary}"/>
+                                                    <Label Text="{Binding Date, StringFormat='{0:MMM dd}'}"
+                                                         FontSize="13"
+                                                         TextColor="{StaticResource TextSecondary}"/>
+                                                </VerticalStackLayout>
+                                                
+                                                <!-- Max Temp -->
+                                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                                    <Label Text="{Binding MaxTemperature, StringFormat='{0:F0}°'}"
+                                                         FontSize="20"
+                                                         FontAttributes="Bold"
+                                                         TextColor="{StaticResource WarningOrange}"
+                                                         HorizontalTextAlignment="End"/>
+                                                    <Label Text="High"
+                                                         FontSize="10"
+                                                         TextColor="{StaticResource TextSecondary}"
+                                                         HorizontalTextAlignment="End"/>
+                                                </VerticalStackLayout>
+                                                
+                                                <!-- Min Temp -->
+                                                <VerticalStackLayout Grid.Column="2" Spacing="2">
+                                                    <Label Text="{Binding MinTemperature, StringFormat='{0:F0}°'}"
+                                                         FontSize="20"
+                                                         FontAttributes="Bold"
+                                                         TextColor="{StaticResource AccentBlue}"
+                                                         HorizontalTextAlignment="End"/>
+                                                    <Label Text="Low"
+                                                         FontSize="10"
+                                                         TextColor="{StaticResource TextSecondary}"
+                                                         HorizontalTextAlignment="End"/>
+                                                </VerticalStackLayout>
+                                                
+                                                <!-- Condition -->
+                                                <Label Grid.Column="3"
+                                                     Text="{Binding Condition}"
+                                                     FontSize="13"
+                                                     TextColor="{StaticResource TextSecondary}"
+                                                     VerticalOptions="Center"
+                                                     HorizontalTextAlignment="End"
+                                                     LineBreakMode="TailTruncation"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                    <!-- Last Updated Footer -->
+                    <Border BackgroundColor="Transparent"
+                            Padding="12"
+                            Margin="0,4,0,20">
+                        <HorizontalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Label Text="🕐"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center"/>
+                            <Label Text="{Binding WeatherData.LastUpdated, StringFormat='Updated at {0:HH:mm}'}"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Floating Action Buttons -->
+        <HorizontalStackLayout Grid.Row="2"
+                             HorizontalOptions="End"
+                             VerticalOptions="End"
+                             Spacing="12"
+                             Margin="20">
+            
+            <!-- Favorite Button -->
+            <Border BackgroundColor="{StaticResource CardBackground}"
+                    StrokeThickness="1"
+                    Stroke="{StaticResource CardBorder}"
+                    StrokeShape="RoundRectangle 30"
+                    WidthRequest="60"
+                    HeightRequest="60"
+                    IsVisible="{Binding WeatherData, Converter={StaticResource NullToBoolConverter}}"
+                    Shadow="{Shadow Brush=Black, Opacity=0.4, Radius=12, Offset='0,4'}">
+                <Button Command="{Binding ToggleFavoriteCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource AccentBlue}"
+                        FontSize="24">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" 
+                                   Binding="{Binding IsFavorite}" 
+                                   Value="True">
+                            <Setter Property="Text" Value="⭐"/>
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button" 
+                                   Binding="{Binding IsFavorite}" 
+                                   Value="False">
+                            <Setter Property="Text" Value="☆"/>
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+            </Border>
+
+            <!-- Refresh Button -->
+            <Border BackgroundColor="{StaticResource AccentBlue}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 30"
+                    WidthRequest="60"
+                    HeightRequest="60"
+                    Shadow="{Shadow Brush=Black, Opacity=0.4, Radius=12, Offset='0,4'}">
+                <Button Text="🔄"
+                        Command="{Binding RefreshCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        FontSize="24"/>
+            </Border>
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

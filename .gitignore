@@ -1,0 +1,125 @@
+# .NET Core
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.cache
+*.dll
+*.exe
+*.pdb
+*.log
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln.cache
+*.csproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# MAUI specific
+**/Resources/Raw/**
+**/Resources/Images/.DS_Store
+*.apk
+*.aab
+*.ipa
+*.app
+
+# Rider
+.idea/
+*.sln.iml
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Test Coverage
+coverage/
+*.coverage
+*.coveragexml
+TestResults/
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# Archives (keep source, ignore compiled archives)
+*.zip
+*.pdf
+
+# Backups
+*.bak
+*.backup
+
+# OS generated files
+Icon?
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Project specific - exclude prototype files
+2023_POSWorksWeatherPrototype/
+2023_POSWorksWeatherPrototype.pdf
+2023_POSWorksWeatherPrototype.zip
+
+# Keep these important files
+!README.md
+!LICENSE
+!.gitignore
+!*.csproj
+!*.slnx
+!*.cs
+!*.xaml
+!*.json
+!*.plist
+!*.xml

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:WeatherApp.ViewModels"
+             xmlns:entities="clr-namespace:WeatherApp.Data.Entities"
+             x:Class="WeatherApp.Views.FavoritesPage"
+             x:DataType="vm:FavoritesViewModel"
+             Title="{Binding Title}">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- Modern Color Palette -->
+            <Color x:Key="PrimaryDark">#0D1117</Color>
+            <Color x:Key="SecondaryDark">#161B22</Color>
+            <Color x:Key="CardBackground">#21262D</Color>
+            <Color x:Key="CardBorder">#30363D</Color>
+            <Color x:Key="AccentBlue">#58A6FF</Color>
+            <Color x:Key="TextPrimary">#E6EDF3</Color>
+            <Color x:Key="TextSecondary">#8B949E</Color>
+            <Color x:Key="WarningOrange">#FFA657</Color>
+            <Color x:Key="DangerRed">#F85149</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <!-- Gradient Background -->
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#0D1117" Offset="0.0" />
+            <GradientStop Color="#161B22" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <Grid RowDefinitions="Auto,*">
+        
+        <!-- Header -->
+        <Frame Grid.Row="0" 
+               BackgroundColor="{StaticResource CardBackground}"
+               BorderColor="{StaticResource CardBorder}"
+               CornerRadius="16"
+               Padding="20"
+               Margin="16,20,16,0"
+               HasShadow="True">
+            <HorizontalStackLayout Spacing="12" VerticalOptions="Center">
+                <Label Text="⭐"
+                       FontSize="32"
+                       VerticalOptions="Center"/>
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Favorite Locations"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"/>
+                    <Label Text="{Binding Favorites.Count, StringFormat='{0} saved locations'}"
+                           FontSize="14"
+                           TextColor="{StaticResource TextSecondary}"/>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Frame>
+
+        <!-- Content -->
+        <RefreshView Grid.Row="1"
+                    IsRefreshing="{Binding IsBusy}"
+                    Command="{Binding LoadFavoritesCommand}"
+                    Margin="16">
+            
+            <CollectionView ItemsSource="{Binding Favorites}"
+                          SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="40"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       Spacing="16">
+                        <Label Text="⭐"
+                               FontSize="64"
+                               HorizontalOptions="Center"
+                               Opacity="0.3"/>
+                        <Label Text="No favorites yet"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="Add locations from the weather page to see them here"
+                               FontSize="14"
+                               TextColor="{StaticResource TextSecondary}"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="entities:FavoriteLocation">
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Delete"
+                                             BackgroundColor="{StaticResource DangerRed}"
+                                             Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FavoritesViewModel}}, Path=DeleteFavoriteCommand}"
+                                             CommandParameter="{Binding .}"/>
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <Frame BackgroundColor="{StaticResource CardBackground}"
+                                 BorderColor="{StaticResource CardBorder}"
+                                 CornerRadius="12"
+                                 Padding="16"
+                                 Margin="0,8"
+                                 HasShadow="False">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FavoritesViewModel}}, Path=SelectFavoriteCommand}"
+                                                        CommandParameter="{Binding .}"/>
+                                </Frame.GestureRecognizers>
+
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                                    
+                                    <!-- Location Info -->
+                                    <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                        <Label Text="{Binding Name}"
+                                             FontSize="18"
+                                             FontAttributes="Bold"
+                                             TextColor="{StaticResource TextPrimary}"/>
+                                        
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Label Text="📍"
+                                                 FontSize="12"
+                                                 VerticalOptions="Center"/>
+                                            <Label Text="{Binding Country}"
+                                                 FontSize="13"
+                                                 TextColor="{StaticResource TextSecondary}"
+                                                 VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Label Text="👁️"
+                                                 FontSize="12"
+                                                 VerticalOptions="Center"/>
+                                            <Label Text="{Binding AccessCount, StringFormat='Viewed {0} times'}"
+                                                 FontSize="12"
+                                                 TextColor="{StaticResource TextSecondary}"
+                                                 VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+
+                                    <!-- Weather Info -->
+                                    <VerticalStackLayout Grid.Column="1" 
+                                                       Spacing="4"
+                                                       IsVisible="{Binding LastKnownTemperature, Converter={StaticResource NullToBoolConverter}}"
+                                                       HorizontalOptions="End">
+                                        <Label Text="{Binding LastKnownTemperature, StringFormat='{0:F0}°C'}"
+                                             FontSize="32"
+                                             FontAttributes="Bold"
+                                             TextColor="{StaticResource AccentBlue}"
+                                             HorizontalTextAlignment="End"/>
+                                        <Label Text="{Binding LastKnownCondition}"
+                                             FontSize="12"
+                                             TextColor="{StaticResource TextSecondary}"
+                                             HorizontalTextAlignment="End"
+                                             LineBreakMode="TailTruncation"
+                                             MaxLines="1"/>
+                                    </VerticalStackLayout>
+
+                                    <!-- Arrow -->
+                                    <Label Grid.Column="2"
+                                         Text="›"
+                                         FontSize="32"
+                                         TextColor="{StaticResource TextSecondary}"
+                                         VerticalOptions="Center"/>
+                                </Grid>
+                            </Frame>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>
